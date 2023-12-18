@@ -11,13 +11,10 @@ def check_plagiarism(path_to_dir):
     p = Path(f'{path_to_dir}')
     students = [x.name for x in p.iterdir() if x.is_dir()]
     students_dict = {i: student for i, student in enumerate(students, start=1)}
-    print(students_dict)
 
     report_matrix = {f"student_{author}": {f"student_{other_author}": ["/"] for other_author in students_dict} for author in students_dict}
 
     plagiarized_files = compare_files_in_directories(f'{path_to_dir}')
-
-    print(list(students_dict.values()).index("auteur3") + 1)
 
     for students in plagiarized_files:
         report_matrix[f"student_{list(students_dict.values()).index(students[0]) + 1}"][f"student_{list(students_dict.values()).index(students[1]) + 1}"] = [f'identieke file(s): {students[2]}']
