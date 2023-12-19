@@ -16,8 +16,16 @@ def check_plagiarism(path_to_dir):
 
     plagiarized_files = compare_files_in_directories(f'{path_to_dir}')
 
-    for students in plagiarized_files:
-        report_matrix[f"student_{list(students_dict.values()).index(students[0]) + 1}"][f"student_{list(students_dict.values()).index(students[1]) + 1}"] = [f'identieke file(s): {students[2]}']
+    for students in plagiarized_files[0]:
+        report_matrix[f"student_{list(students_dict.values()).index(students[0]) + 1}"][f"student_{list(students_dict.values()).index(students[1]) + 1}"] = [f'identical file(s): {students[2]}']
+
+    for author1, author2, comments in plagiarized_files[1]:
+        key1 = f"student_{list(students_dict.values()).index(author1) + 1}"
+        key2 = f"student_{list(students_dict.values()).index(author2) + 1}"
+        if comments:
+            comment_str = f'identical comment(s): {comments}'
+            if report_matrix[key1][key2] == ["/"]:
+                report_matrix[key1][key2] = [comment_str]
 
     mapped_matrix = [[report_matrix[student1][student][0] for student in report_matrix] for student1 in report_matrix] 
     all_students = [student for student in report_matrix]
