@@ -1,7 +1,7 @@
 import filecmp
 from pathlib import Path
 import re
-
+from cst_comments import *
 
 def compare_files_in_directories(dir_check): # dir_check is a path to a directory
     dir_check = Path(dir_check)
@@ -15,9 +15,8 @@ def compare_files_in_directories(dir_check): # dir_check is a path to a director
             plagiarized_files = compare_two_directories(dir1, dir2)
             if plagiarized_files:
                 results.append((dir1.name, dir2.name, plagiarized_files))
-            if not plagiarized_files:
-                comment_results = check_comments(dir1, dir2)
-                plagiarized_comments.append(comment_results)
+            comment_results = check_comments(dir1, dir2, plagiarized_files)
+            plagiarized_comments.append(comment_results)
 
     return (results, plagiarized_comments)
 
@@ -34,7 +33,7 @@ def compare_two_directories(dir1, dir2):
     return matches
 
 
-def check_comments(dir1, dir2):
+def check_comments(dir1, dir2, identical_files=None):
     dir1 = Path(dir1)
     dir2 = Path(dir2)
     files_dir1 = list(dir1.glob('**/*.py'))
@@ -44,12 +43,17 @@ def check_comments(dir1, dir2):
 
     for file1 in files_dir1:
         with open(file1, 'r') as f1:
-            file1_comments = set(re.findall(r'#(.*)', f1.read()))
+            file1_content = f1.read()
+            file1_comments = set(re.findall(r'#(.*)', file1_content))
             for file2 in files_dir2:
+                if file1.name == file2.name and file1.name in identical_files:
+                    continue
                 with open(file2, 'r') as f2:
-                    file2_comments = set(re.findall(r'#(.*)', f2.read()))
+                    file2_content = f2.read()
+                    identical_cst = check_cst_comments(file1_content, file2_content)
+                    file2_comments = set(re.findall(r'#(.*)', file2_content))
                     identical_comments.update(file1_comments.intersection(file2_comments))
-    return (dir1.name, dir2.name, identical_comments)
+    return (dir1.name, dir2.name, identical_comments, identical_cst)
 
 
 if __name__ == "__main__":
