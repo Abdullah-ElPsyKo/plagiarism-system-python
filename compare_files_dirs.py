@@ -9,13 +9,16 @@ def compare_files_in_directories(dir_check): # dir_check is a path to a director
 
     results = []
     plagiarized_comments = []
+
     for i, dir1 in enumerate(student_dirs):
         for dir2 in student_dirs[i+1:]:
             plagiarized_files = compare_two_directories(dir1, dir2)
             if plagiarized_files:
                 results.append((dir1.name, dir2.name, plagiarized_files))
-            else:
-                plagiarized_comments.append(check_comments(dir1, dir2))
+            if not plagiarized_files:
+                comment_results = check_comments(dir1, dir2)
+                plagiarized_comments.append(comment_results)
+
     return (results, plagiarized_comments)
 
 
@@ -36,15 +39,19 @@ def check_comments(dir1, dir2):
     dir2 = Path(dir2)
     files_dir1 = list(dir1.glob('**/*.py'))
     files_dir2 = list(dir2.glob('**/*.py'))
+
+    identical_comments = set()
+
     for file1 in files_dir1:
-        for file2 in files_dir2:
-            with open(file1, 'r') as f1 , open(file2, 'r') as f2:
-                file1_comments = set(re.findall(r'#(.*)', f1.read()))
-                file2_comments = set(re.findall(r'#(.*)', f2.read()))
-                identical_comments = file1_comments.intersection(file2_comments)
+        with open(file1, 'r') as f1:
+            file1_comments = set(re.findall(r'#(.*)', f1.read()))
+            for file2 in files_dir2:
+                with open(file2, 'r') as f2:
+                    file2_comments = set(re.findall(r'#(.*)', f2.read()))
+                    identical_comments.update(file1_comments.intersection(file2_comments))
     return (dir1.name, dir2.name, identical_comments)
 
 
 if __name__ == "__main__":
-    check_path = "C:\\Users\\ASUS\\OneDrive - AP Hogeschool Antwerpen\\School\\Python\\blok 5\\project\\analyse"
+    check_path = "C:\\Users\\ASUS\\OneDrive - AP Hogeschool Antwerpen\\School\\Python\\blok 5\\analyse"
     print(compare_files_in_directories(check_path))
