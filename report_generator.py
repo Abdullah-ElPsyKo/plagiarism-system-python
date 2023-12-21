@@ -35,15 +35,17 @@ def check_plagiarism(path_to_dir):
             update_matrix(idx1, idx2, f"file(s): {identical_files}")
 
     # Update report matrix with plagiarism findings for identical single line comments
-    for author1, author2, comments in plagiarized_files[1]:
+    for author1, author2, comments, identical_cst in plagiarized_files[1]:
         idx1, idx2 = [list(students.values()).index(author) + 1 for author in [author1, author2]]
+
         if comments:
             combined_comments = ' '.join(comments)
             combined_comments = f'variable = "{combined_comments}"'
             spelling_errors = check_spelling_errors(combined_comments)
-            update_matrix(idx1, idx2, f"comment(s): {comments}. Identical spelling error(s): {spelling_errors}")
-        
-    mapped_matrix = [[report_matrix[f"student_{i}"][f"student_{j}"][0] for j in students] for i in students]
+            content = f"comment(s): {comments}. Identical spelling error(s): {spelling_errors}. Identical cst: {identical_cst}"
+            update_matrix(idx1, idx2, content)
+
+    mapped_matrix = [[report_matrix[f"student_{i}"][f"student_{j}"] for j in students] for i in students]
 
     return list(students.values()), mapped_matrix
 
