@@ -1,6 +1,7 @@
 import jinja2 as j2
 from pathlib import Path
 from compare_files_dirs import *
+from spelling_checker import *
 
 env = j2.Environment(
     loader=j2.FileSystemLoader("."),
@@ -37,7 +38,10 @@ def check_plagiarism(path_to_dir):
     for author1, author2, comments in plagiarized_files[1]:
         idx1, idx2 = [list(students.values()).index(author) + 1 for author in [author1, author2]]
         if comments:
-            update_matrix(idx1, idx2, f"comment(s): {comments}")
+            combined_comments = ' '.join(comments)
+            combined_comments = f'variable = "{combined_comments}"'
+            spelling_errors = check_spelling_errors(combined_comments)
+            update_matrix(idx1, idx2, f"comment(s): {comments}. Identical spelling error(s): {spelling_errors}")
         
     mapped_matrix = [[report_matrix[f"student_{i}"][f"student_{j}"][0] for j in students] for i in students]
 
