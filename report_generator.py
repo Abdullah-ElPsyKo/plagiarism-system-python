@@ -8,29 +8,40 @@ env = j2.Environment(
 )
 
 def check_plagiarism(path_to_dir):
-    p = Path(f'{path_to_dir}')
-    students = [x.name for x in p.iterdir() if x.is_dir()]
-    students_dict = {i: student for i, student in enumerate(students, start=1)}
+    students_dir = Path(path_to_dir)
+    
+    # Creating a dictionary of student directories
+    students = {i: student.name for i, student in enumerate(students_dir.iterdir(), start=1) if student.is_dir()}
+    
+    report_matrix = {f"student_{i}": {f"student_{j}": ["/"] for j in students} for i in students}
+    
+    plagiarized_files = compare_files_in_directories(students_dir)
 
-    report_matrix = {f"student_{author}": {f"student_{other_author}": ["/"] for other_author in students_dict} for author in students_dict}
+    # Function to update matrix based on plagiarism report
+    def update_matrix(student1, student2, content):
+        key1 = f"student_{student1}"
+        key2 = f"student_{student2}"
+        content_str = f'identical {content} '
+        if report_matrix[key1][key2] == ["/"]:
+            report_matrix[key1][key2] = [content_str]
+        else:
+            report_matrix[key1][key2].append(content_str)
 
-    plagiarized_files = compare_files_in_directories(f'{path_to_dir}')
+    # Update report matrix with plagiarism findings for identical files
+    for author1, author2, identical_files in plagiarized_files[0]:
+        idx1, idx2 = [list(students.values()).index(author) + 1 for author in [author1, author2]]
+        if identical_files:
+            update_matrix(idx1, idx2, f"file(s): {identical_files}")
 
-    for students in plagiarized_files[0]:
-        report_matrix[f"student_{list(students_dict.values()).index(students[0]) + 1}"][f"student_{list(students_dict.values()).index(students[1]) + 1}"] = [f'identical file(s): {students[2]}']
-
+    # Update report matrix with plagiarism findings for identical single line comments
     for author1, author2, comments in plagiarized_files[1]:
-        key1 = f"student_{list(students_dict.values()).index(author1) + 1}"
-        key2 = f"student_{list(students_dict.values()).index(author2) + 1}"
+        idx1, idx2 = [list(students.values()).index(author) + 1 for author in [author1, author2]]
         if comments:
-            comment_str = f'identical comment(s): {comments}'
-            if report_matrix[key1][key2] == ["/"]:
-                report_matrix[key1][key2] = [comment_str]
+            update_matrix(idx1, idx2, f"comment(s): {comments}")
+        
+    mapped_matrix = [[report_matrix[f"student_{i}"][f"student_{j}"][0] for j in students] for i in students]
 
-    mapped_matrix = [[report_matrix[student1][student][0] for student in report_matrix] for student1 in report_matrix] 
-    all_students = [student for student in report_matrix]
-
-    return all_students, mapped_matrix
+    return list(students.values()), mapped_matrix
 
 
 def generate_report(all_students, mapped_matrix):
