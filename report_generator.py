@@ -3,10 +3,12 @@ from pathlib import Path
 from compare_files_dirs import *
 from spelling_checker import *
 
+
 env = j2.Environment(
     loader=j2.FileSystemLoader("."),
     autoescape=j2.select_autoescape(),
 )
+
 
 def check_plagiarism(path_to_dir):
     students_dir = Path(path_to_dir)
@@ -35,14 +37,15 @@ def check_plagiarism(path_to_dir):
             update_matrix(idx1, idx2, f"file(s): {identical_files}")
 
     # Update report matrix with plagiarism findings for identical single line comments
-    for author1, author2, comments, identical_cst in plagiarized_files[1]:
+    for author1, author2, comments, identical_cst, ast_result in plagiarized_files[1]:
         idx1, idx2 = [list(students.values()).index(author) + 1 for author in [author1, author2]]
 
         if comments:
             combined_comments = ' '.join(comments)
             combined_comments = f'variable = "{combined_comments}"'
             spelling_errors = check_spelling_errors(combined_comments)
-            content = f"comment(s): {comments}. Identical spelling error(s): {spelling_errors}. Identical cst: {identical_cst}"
+            true_ast = {ast_checked for ast_checked in ast_result if ast_checked[2] == True}
+            content = f"comment(s): {comments}. Identical spelling error(s): {spelling_errors}. Identical cst: {identical_cst}. The ASTs are identical: {true_ast}"
             update_matrix(idx1, idx2, content)
 
     mapped_matrix = [[report_matrix[f"student_{i}"][f"student_{j}"] for j in students] for i in students]
