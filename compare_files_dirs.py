@@ -13,7 +13,7 @@ def compare_files_in_directories(dir_check): # dir_check is a path to a director
 
     for i, dir1 in enumerate(student_dirs):
         for dir2 in student_dirs[i+1:]:
-            plagiarized_files = compare_two_directories(dir1, dir2)
+            plagiarized_files = find_identical_files(dir1, dir2)
             if plagiarized_files:
                 results.append((dir1.name, dir2.name, plagiarized_files))
             comment_results = check_content(dir1, dir2, plagiarized_files)
@@ -22,7 +22,7 @@ def compare_files_in_directories(dir_check): # dir_check is a path to a director
     return (results, plagiarized_comments)
 
 
-def compare_two_directories(dir1, dir2):
+def find_identical_files(dir1, dir2):
     files_dir1 = list(dir1.glob('**/*.*'))
     files_dir2 = list(dir2.glob('**/*.*'))
 
