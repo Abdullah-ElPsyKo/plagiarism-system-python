@@ -1,6 +1,5 @@
 import ast
 
-
 def get_ast_string(code):
     try:
         tree = ast.parse(code)
